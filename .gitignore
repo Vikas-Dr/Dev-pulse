@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+.prisma/
+
+# IDE
+.idea/
+.vscode/
+
+# AI / tooling
+.omo/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Scrap / personal
+*.tex
