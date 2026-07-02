@@ -17,3 +17,6 @@ dist/
 
 # Scrap / personal
 *.tex
+
+# Playwright MCP artifacts
+.playwright-mcp/

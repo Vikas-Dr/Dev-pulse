@@ -138,7 +138,10 @@ DevPulse/
 
 ## Screenshots
 
-*(Add screenshots here)*
+| Page | Preview |
+|------|---------|
+| **Login** — Dark-themed login form with DevPulse branding | ![Login Page](screenshots/screenshot-login.png) |
+| **Register** — Account creation with email and password | ![Register Page](screenshots/screenshot-register.png) |
 
 ## License
 
