@@ -106,19 +106,19 @@ router.get("/", authenticate, async (req: AuthRequest, res: Response): Promise<v
       orderBy: { addedAt: "desc" },
     });
 
-    const result = projects.map((p) => {
+    const result = projects.map((p: any) => {
       const latestScan = p.scans[0] || null;
       const criticalCount = latestScan
-        ? latestScan.vulnerabilities.filter((v) => v.severity === "critical").length
+        ? latestScan.vulnerabilities.filter((v: any) => v.severity === "critical").length
         : 0;
       const highCount = latestScan
-        ? latestScan.vulnerabilities.filter((v) => v.severity === "high").length
+        ? latestScan.vulnerabilities.filter((v: any) => v.severity === "high").length
         : 0;
       const mediumCount = latestScan
-        ? latestScan.vulnerabilities.filter((v) => v.severity === "medium").length
+        ? latestScan.vulnerabilities.filter((v: any) => v.severity === "medium").length
         : 0;
       const lowCount = latestScan
-        ? latestScan.vulnerabilities.filter((v) => v.severity === "low").length
+        ? latestScan.vulnerabilities.filter((v: any) => v.severity === "low").length
         : 0;
 
       return {

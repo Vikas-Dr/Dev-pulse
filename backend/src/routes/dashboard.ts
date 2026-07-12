@@ -29,10 +29,10 @@ router.get("/stats", authenticate, async (req: AuthRequest, res: Response): Prom
     for (const project of projects) {
       const latestScan = project.scans[0];
       if (latestScan) {
-        criticalCount += latestScan.vulnerabilities.filter((v) => v.severity === "critical").length;
-        highCount += latestScan.vulnerabilities.filter((v) => v.severity === "high").length;
-        mediumCount += latestScan.vulnerabilities.filter((v) => v.severity === "medium").length;
-        lowCount += latestScan.vulnerabilities.filter((v) => v.severity === "low").length;
+        criticalCount += latestScan.vulnerabilities.filter((v: any) => v.severity === "critical").length;
+        highCount += latestScan.vulnerabilities.filter((v: any) => v.severity === "high").length;
+        mediumCount += latestScan.vulnerabilities.filter((v: any) => v.severity === "medium").length;
+        lowCount += latestScan.vulnerabilities.filter((v: any) => v.severity === "low").length;
 
         const scanTime = latestScan.scannedAt.toISOString();
         if (!lastScanTime || scanTime > lastScanTime) {
@@ -42,7 +42,7 @@ router.get("/stats", authenticate, async (req: AuthRequest, res: Response): Prom
     }
 
     const healthyProjects = projects.filter(
-      (p) => p.healthScore !== null && p.healthScore >= 80
+      (p: any) => p.healthScore !== null && p.healthScore >= 80
     ).length;
 
     res.json({
@@ -52,7 +52,7 @@ router.get("/stats", authenticate, async (req: AuthRequest, res: Response): Prom
       mediumCount,
       lowCount,
       healthyProjects,
-      vulnerableProjects: projects.filter((p) => {
+      vulnerableProjects: projects.filter((p: any) => {
         const s = p.scans[0];
         return s && s.vulnerabilities.length > 0;
       }).length,
@@ -113,7 +113,7 @@ router.get("/vulnerabilities/:scanId", authenticate, async (req: AuthRequest, re
 
     // Sort by severity: critical > high > medium > low
     const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
-    vulnerabilities.sort((a, b) => (severityOrder[a.severity] ?? 99) - (severityOrder[b.severity] ?? 99));
+    vulnerabilities.sort((a: any, b: any) => (severityOrder[a.severity] ?? 99) - (severityOrder[b.severity] ?? 99));
 
     res.json({ vulnerabilities });
   } catch (error) {
