@@ -31,20 +31,6 @@ async function main() {
     await prisma.$connect();
     console.log("✅ Connected to PostgreSQL");
 
-    // Seed demo user
-    const demoEmail = "demo@devpulse.local";
-    const existing = await prisma.user.findUnique({ where: { email: demoEmail } });
-    if (!existing) {
-      const hashedPassword = await bcrypt.hash("Demo@123", 12);
-      await prisma.user.create({
-        data: {
-          email: demoEmail,
-          password: hashedPassword,
-          name: "Demo User",
-        },
-      });
-      console.log("🌱 Seeded demo user: demo@devpulse.local / Demo@123");
-    }
 
     if (!process.env.VERCEL) {
       app.listen(config.port, () => {
