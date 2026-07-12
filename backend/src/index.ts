@@ -46,9 +46,11 @@ async function main() {
       console.log("🌱 Seeded demo user: demo@devpulse.local / Demo@123");
     }
 
-    app.listen(config.port, () => {
-      console.log(`🚀 DevPulse backend running on http://localhost:${config.port}`);
-    });
+    if (!process.env.VERCEL) {
+      app.listen(config.port, () => {
+        console.log(`🚀 DevPulse backend running on http://localhost:${config.port}`);
+      });
+    }
   } catch (error) {
     console.error("❌ Failed to start server:", error);
     process.exit(1);
@@ -67,3 +69,5 @@ process.on("SIGTERM", async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
+
+export default app;
