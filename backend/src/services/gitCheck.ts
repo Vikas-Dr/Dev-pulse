@@ -1,4 +1,6 @@
-import { execSync } from "child_process";
+import { execSync, exec } from "child_process";
+import fs from "fs";
+import path from "path";
 
 export interface GitStatusResult {
   gitStatus: "clean" | "dirty" | "no-repo";
@@ -41,3 +43,52 @@ export function checkGitStatus(projectPath: string): GitStatusResult {
     return { gitStatus: "no-repo", lastCommit: null };
   }
 }
+
+export function getGitRemoteUrl(projectPath: string): string | null {
+  try {
+    const url = execSync("git remote get-url origin", {
+      cwd: projectPath,
+      timeout: 3000,
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    return url.trim();
+  } catch {
+    return null;
+  }
+}
+
+export function parseGitHubRepo(url: string | null): string | null {
+  if (!url) return null;
+  const match = url.match(/github\.com[/:]([^/]+)\/([^/.]+)(?:\.git)?/);
+  if (match) {
+    return `${match[1]}/${match[2]}`;
+  }
+  return null;
+}
+
+export function getGitHubRepoOfProject(projectPath: string): string | null {
+  const remoteUrl = getGitRemoteUrl(projectPath);
+  return parseGitHubRepo(remoteUrl);
+}
+
+export function cloneGitRepo(gitUrl: string, targetPath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const parentDir = path.dirname(targetPath);
+    if (!fs.existsSync(parentDir)) {
+      fs.mkdirSync(parentDir, { recursive: true });
+    }
+
+    const command = `git clone --depth 1 "${gitUrl}" "${targetPath}"`;
+    exec(command, { timeout: 60000 }, (error) => {
+      if (error) {
+        console.error(`[GIT CLONE] Failed to clone ${gitUrl}:`, error.message);
+        reject(error);
+      } else {
+        console.log(`[GIT CLONE] Successfully cloned ${gitUrl} to ${targetPath}`);
+        resolve();
+      }
+    });
+  });
+}
+

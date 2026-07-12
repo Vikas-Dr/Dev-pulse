@@ -10,7 +10,11 @@ import {
   usePatchProject,
   useDeleteProject,
 } from "../hooks/useProjects";
-import { IconScan, IconPatch, IconDelete, IconChevronLeft, IconEmptyScan, IconShield } from "../components/icons";
+import { IconScan, IconPatch, IconDelete, IconChevronLeft, IconEmptyScan, IconShield, IconSettings } from "../components/icons";
+import EditProjectModal from "../components/EditProjectModal";
+import GitHubPanel from "../components/GitHubPanel";
+import GitHubActivity from "../components/GitHubActivity";
+import ReportModal from "../components/ReportModal";
 
 function getSeverity(
   healthScore: number | null
@@ -28,11 +32,13 @@ export default function ProjectDetailPage() {
   const patchMutation = usePatchProject();
   const deleteMutation = useDeleteProject();
   const [selectedScanId, setSelectedScanId] = useState<string | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
 
   if (isLoading) {
     return (
       <div className="space-y-6 max-w-5xl page-enter">
-        <div className="animate-pulse space-y-4">
+        <div className="space-y-4">
           <div className="flex items-center gap-4">
             <div className="w-5 h-5 rounded-full bg-surface-border/50 skeleton" />
             <div>
@@ -40,8 +46,8 @@ export default function ProjectDetailPage() {
               <div className="h-4 w-64 skeleton rounded" />
             </div>
           </div>
-          <div className="h-20 skeleton rounded-lg" />
-          <div className="h-48 skeleton rounded-lg" />
+          <div className="h-20 skeleton-shimmer rounded-lg" />
+          <div className="h-48 skeleton-shimmer rounded-lg" />
         </div>
       </div>
     );
@@ -140,6 +146,19 @@ export default function ProjectDetailPage() {
             )}
           </button>
           <button
+            onClick={() => setIsEditOpen(true)}
+            className="btn-ghost flex items-center gap-2 border border-surface-border hover:border-text-secondary/30"
+          >
+            <IconSettings size={16} /> Edit
+          </button>
+          <button
+            onClick={() => setIsReportOpen(true)}
+            className="btn-ghost flex items-center gap-2 border border-surface-border hover:border-text-secondary/30 text-pulse-green"
+            title="Get printable health report"
+          >
+            <IconEmptyScan size={16} /> Get Report
+          </button>
+          <button
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
             className="btn-danger flex items-center gap-2"
@@ -202,6 +221,19 @@ export default function ProjectDetailPage() {
               ? new Date(project.lastScanned).toLocaleString()
               : "Never"}
           </span>
+        </div>
+      </div>
+
+      {/* GitHub Integration */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <GitHubPanel
+            repo={project.githubRepo}
+            onEditClick={() => setIsEditOpen(true)}
+          />
+        </div>
+        <div>
+          <GitHubActivity repo={project.githubRepo} />
         </div>
       </div>
 
@@ -321,6 +353,32 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       )}
+
+      <EditProjectModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        project={{
+          id: project.id,
+          name: project.name,
+          path: project.path,
+          githubRepo: project.githubRepo,
+        }}
+      />
+
+      <ReportModal
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        project={{
+          id: project.id,
+          name: project.name,
+          path: project.path,
+          techStack: project.techStack,
+          gitStatus: project.gitStatus,
+          healthScore: project.healthScore,
+          githubRepo: project.githubRepo,
+        }}
+        latestScan={selectedScan}
+      />
     </div>
   );
 }

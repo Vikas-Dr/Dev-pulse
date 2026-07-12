@@ -3,7 +3,7 @@ import { useAuthStore } from "../stores/authStore";
 
 export function useAuth() {
   const navigate = useNavigate();
-  const { login, register, logout, user, isAuthenticated, isLoading } =
+  const { login, register, logout, loginGoogle, user, isAuthenticated, isLoading } =
     useAuthStore();
 
   const handleLogin = async (email: string, password: string) => {
@@ -20,6 +20,11 @@ export function useAuth() {
     navigate("/");
   };
 
+  const handleGoogleLogin = async (code: string, redirectUri: string) => {
+    await loginGoogle(code, redirectUri);
+    navigate("/");
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -31,6 +36,7 @@ export function useAuth() {
     isLoading,
     login: handleLogin,
     register: handleRegister,
+    loginGoogle: handleGoogleLogin,
     logout: handleLogout,
   };
 }

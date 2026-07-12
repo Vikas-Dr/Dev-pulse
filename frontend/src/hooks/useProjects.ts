@@ -102,7 +102,7 @@ export function useAddProject() {
   const addProject = useProjectStore((s) => s.addProject);
 
   return useMutation({
-    mutationFn: async (data: { name: string; path: string }) => {
+    mutationFn: async (data: { name: string; path: string; destinationPath?: string }) => {
       const response = await apiClient.post("/projects", data);
       return response.data;
     },
@@ -114,6 +114,33 @@ export function useAddProject() {
     },
     onError: () => {
       toast.error("Failed to add project");
+    },
+  });
+}
+
+export function useUpdateProject() {
+  const queryClient = useQueryClient();
+  const updateProject = useProjectStore((s) => s.updateProject);
+
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      data,
+    }: {
+      projectId: string;
+      data: { name?: string; path?: string; githubRepo?: string | null };
+    }) => {
+      const response = await apiClient.put(`/projects/${projectId}`, data);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      toast.success("Project updated successfully");
+      updateProject(data.project.id, data.project);
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project", data.project.id] });
+    },
+    onError: () => {
+      toast.error("Failed to update project");
     },
   });
 }

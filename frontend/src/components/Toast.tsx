@@ -1,10 +1,10 @@
 import { useToastStore, type ToastType } from "../stores/toastStore";
 import { IconCheck, IconAlert, IconClose } from "./icons";
 
-const toastStyles: Record<ToastType, { bg: string; border: string; icon: "check" | "alert" | "info" }> = {
-  success: { bg: "bg-pulse-green/10", border: "border-pulse-green/30", icon: "check" },
-  error: { bg: "bg-pulse-red/10", border: "border-pulse-red/30", icon: "alert" },
-  info: { bg: "bg-pulse-amber/10", border: "border-pulse-amber/30", icon: "alert" },
+const toastStyles: Record<ToastType, { bg: string; border: string; text: string; icon: "check" | "alert" | "info" }> = {
+  success: { bg: "bg-pulse-green/10", border: "border-pulse-green/30", text: "text-pulse-green", icon: "check" },
+  error: { bg: "bg-pulse-red/10", border: "border-pulse-red/30", text: "text-pulse-red", icon: "alert" },
+  info: { bg: "bg-pulse-amber/10", border: "border-pulse-amber/30", text: "text-pulse-amber", icon: "alert" },
 };
 
 const iconMap = {
@@ -30,7 +30,7 @@ export default function ToastContainer() {
             key={toast.id}
             className={`pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-lg border ${style.bg} ${style.border} backdrop-blur-md shadow-lg toast-slide-in`}
           >
-            <Icon size={18} className="flex-shrink-0 mt-0.5 text-pulse-green" />
+            <Icon size={18} className={`flex-shrink-0 mt-0.5 ${style.text}`} />
             <p className="text-sm text-text-primary flex-1 min-w-0 leading-relaxed">
               {toast.message}
             </p>

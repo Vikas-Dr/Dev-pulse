@@ -28,6 +28,7 @@ model Project {
   gitStatus   String?
   lastCommit  DateTime?
   healthScore Float?
+  githubRepo  String?
   scans       Scan[]
   patches     Patch[]
 }

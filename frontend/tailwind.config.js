@@ -5,18 +5,18 @@ export default {
     extend: {
       colors: {
         surface: {
-          DEFAULT: "#0F1117",
-          card: "#1A1D28",
-          border: "#2D3148",
+          DEFAULT: "rgb(var(--bg-primary-rgb) / <alpha-value>)",
+          card: "rgb(var(--bg-card-rgb) / <alpha-value>)",
+          border: "rgb(var(--border-color-rgb) / <alpha-value>)",
         },
         pulse: {
-          green: "#4ADE80",
-          amber: "#F59E0B",
-          red: "#EF4444",
+          green: "rgb(var(--pulse-green-rgb) / <alpha-value>)",
+          amber: "rgb(var(--pulse-amber-rgb) / <alpha-value>)",
+          red: "rgb(var(--pulse-red-rgb) / <alpha-value>)",
         },
         text: {
-          primary: "#E2E8F0",
-          secondary: "#94A3B8",
+          primary: "rgb(var(--text-primary-rgb) / <alpha-value>)",
+          secondary: "rgb(var(--text-secondary-rgb) / <alpha-value>)",
         },
       },
       fontFamily: {

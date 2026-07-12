@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import DevPulseLogo from "./Logo";
 import PulseIndicator from "./PulseIndicator";
-import { IconMenu } from "./icons";
+import { IconMenu, IconSun, IconMoon } from "./icons";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -9,6 +10,19 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
+  const [theme, setTheme] = useState(() => localStorage.getItem("devpulse-theme") || "dark");
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    localStorage.setItem("devpulse-theme", nextTheme);
+    document.documentElement.setAttribute("data-theme", nextTheme);
+    if (nextTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
 
   return (
     <header className="sticky top-0 z-10 bg-surface-card/90 backdrop-blur-md border-b border-surface-border">
@@ -34,7 +48,16 @@ export default function Header({ onMenuClick }: HeaderProps) {
         </div>
 
         {/* Right — system status + user */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-1.5 rounded-lg border border-surface-border text-text-secondary hover:text-text-primary hover:bg-surface-border/20 transition-all duration-150 active:scale-[0.95] focus-visible:ring-1 focus-visible:ring-pulse-green"
+            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+          >
+            {theme === "dark" ? <IconSun size={16} /> : <IconMoon size={16} />}
+          </button>
           {/* System status */}
           <div className="hidden xs:flex items-center gap-2 px-2.5 py-1 rounded-md bg-pulse-green/5 border border-pulse-green/10">
             <PulseIndicator severity="healthy" size="sm" />

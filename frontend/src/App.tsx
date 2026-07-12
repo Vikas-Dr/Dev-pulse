@@ -10,6 +10,8 @@ import DashboardPage from "./pages/DashboardPage";
 import ProjectDetailPage from "./pages/ProjectDetailPage";
 import AddProjectPage from "./pages/AddProjectPage";
 import SettingsPage from "./pages/SettingsPage";
+import LandingPage from "./pages/LandingPage";
+import GoogleCallbackPage from "./pages/GoogleCallbackPage";
 import ToastContainer from "./components/Toast";
 
 const queryClient = new QueryClient({
@@ -22,26 +24,41 @@ const queryClient = new QueryClient({
   },
 });
 
+function RootRoute() {
+  const { isAuthenticated } = useAuthStore();
+  return isAuthenticated ? (
+    <ProtectedRoute>
+      <Layout>
+        <DashboardPage />
+      </Layout>
+    </ProtectedRoute>
+  ) : (
+    <LandingPage />
+  );
+}
+
 function AppContent() {
   const initialize = useAuthStore((s) => s.initialize);
 
   useEffect(() => {
     initialize();
+    const theme = localStorage.getItem("devpulse-theme") || "dark";
+    document.documentElement.setAttribute("data-theme", theme);
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   }, [initialize]);
 
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
       <Route
         path="/"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <DashboardPage />
-            </Layout>
-          </ProtectedRoute>
-        }
+        element={<RootRoute />}
       />
       <Route
         path="/projects/add"

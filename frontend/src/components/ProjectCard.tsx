@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import PulseIndicator from "./PulseIndicator";
 import type { ProjectSummary } from "../stores/projectStore";
-import { TechStackIcon } from "./icons";
+import { TechStackIcon, IconGitHub } from "./icons";
 
 interface ProjectCardProps {
   project: ProjectSummary;
@@ -68,6 +68,12 @@ export default function ProjectCard({ project, index = 0 }: ProjectCardProps) {
         {project.healthScore !== null && (
           <span className="text-[10px] font-mono text-text-secondary bg-surface-border/30 px-2 py-0.5 rounded">
             {Math.round(project.healthScore)}%
+          </span>
+        )}
+        {project.githubRepo && (
+          <span className="text-[10px] font-mono text-text-secondary bg-surface-border/30 px-2 py-0.5 rounded flex items-center gap-1 max-w-[150px]">
+            <IconGitHub size={11} className="text-pulse-green/70" />
+            <span className="truncate">{project.githubRepo}</span>
           </span>
         )}
       </div>

@@ -10,6 +10,7 @@ export interface ProjectSummary {
   gitStatus: string | null;
   lastCommit: string | null;
   healthScore: number | null;
+  githubRepo: string | null;
   latestScan: {
     id: string;
     scannedAt: string;

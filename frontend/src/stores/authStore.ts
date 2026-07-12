@@ -13,6 +13,7 @@ interface AuthState {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
+  loginGoogle: (code: string, redirectUri: string) => Promise<void>;
   logout: () => void;
   fetchMe: () => Promise<void>;
   initialize: () => void;
@@ -57,6 +58,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       password,
       name,
     });
+    const { user, accessToken, refreshToken } = response.data;
+
+    localStorage.setItem(
+      "devpulse-auth",
+      JSON.stringify({ accessToken, refreshToken })
+    );
+
+    set({ user, isAuthenticated: true });
+  },
+
+  loginGoogle: async (code: string, redirectUri: string) => {
+    const response = await apiClient.post("/auth/google/callback", { code, redirectUri });
     const { user, accessToken, refreshToken } = response.data;
 
     localStorage.setItem(

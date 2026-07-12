@@ -1,10 +1,12 @@
 import { Router, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
+import fs from "fs";
+import path from "path";
 import { authenticate, AuthRequest } from "../middleware/auth";
-import { scanProject } from "../services/scanner";
+import { scanProject, detectTechStack } from "../services/scanner";
 import { patchPackage } from "../services/patcher";
-import { checkGitStatus } from "../services/gitCheck";
+import { checkGitStatus, getGitHubRepoOfProject, parseGitHubRepo, cloneGitRepo } from "../services/gitCheck";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -12,6 +14,13 @@ const prisma = new PrismaClient();
 const createProjectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
   path: z.string().min(1, "Project path is required"),
+  destinationPath: z.string().optional(),
+});
+
+const updateProjectSchema = z.object({
+  name: z.string().min(1, "Project name is required").optional(),
+  path: z.string().min(1, "Project path is required").optional(),
+  githubRepo: z.string().nullable().optional(),
 });
 
 const patchSchema = z.object({
@@ -23,19 +32,49 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response): Promise<
   try {
     const data = createProjectSchema.parse(req.body);
 
+    const isGitUrl = data.path.includes("github.com") || data.path.startsWith("git@") || data.path.startsWith("http");
+    let scanPath = data.path;
+    let githubRepo: string | null = null;
+
+    if (isGitUrl) {
+      githubRepo = parseGitHubRepo(data.path);
+      if (!githubRepo) {
+        res.status(400).json({ error: "Invalid GitHub repository URL" });
+        return;
+      }
+      const folderName = githubRepo.replace("/", "-");
+      scanPath = data.destinationPath || path.resolve(__dirname, "../../clones", folderName);
+
+      if (!fs.existsSync(scanPath)) {
+        console.log(`[PROJECTS] Cloning ${data.path} into ${scanPath}...`);
+        try {
+          await cloneGitRepo(data.path, scanPath);
+        } catch (cloneErr: any) {
+          res.status(500).json({ error: `Failed to clone repository: ${cloneErr.message}` });
+          return;
+        }
+      }
+    } else {
+      githubRepo = getGitHubRepoOfProject(data.path);
+    }
+
     const existing = await prisma.project.findFirst({
-      where: { userId: req.user!.userId, path: data.path },
+      where: { userId: req.user!.userId, path: scanPath },
     });
     if (existing) {
-      res.status(409).json({ error: "Project with this path already exists" });
+      res.status(409).json({ error: "Project with this source already exists" });
       return;
     }
+
+    const techStack = detectTechStack(scanPath);
 
     const project = await prisma.project.create({
       data: {
         name: data.name,
-        path: data.path,
+        path: scanPath,
         userId: req.user!.userId,
+        githubRepo,
+        techStack,
       },
     });
 
@@ -92,6 +131,7 @@ router.get("/", authenticate, async (req: AuthRequest, res: Response): Promise<v
         gitStatus: p.gitStatus,
         lastCommit: p.lastCommit,
         healthScore: p.healthScore,
+        githubRepo: p.githubRepo,
         latestScan: latestScan
           ? {
               id: latestScan.id,
@@ -183,6 +223,7 @@ router.post("/:id/scan", authenticate, async (req: AuthRequest, res: Response): 
     // Run scan
     const scanResult = scanProject(project.path);
     const gitInfo = checkGitStatus(project.path);
+    const githubRepo = getGitHubRepoOfProject(project.path);
 
     // Create scan record
     const scan = await prisma.scan.create({
@@ -216,6 +257,7 @@ router.post("/:id/scan", authenticate, async (req: AuthRequest, res: Response): 
         gitStatus: gitInfo.gitStatus,
         lastCommit: gitInfo.lastCommit,
         healthScore,
+        githubRepo: githubRepo || project.githubRepo,
       },
     });
 
@@ -266,4 +308,50 @@ router.post("/:id/patch", authenticate, async (req: AuthRequest, res: Response):
   }
 });
 
+// PUT /api/projects/:id
+router.put("/:id", authenticate, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const data = updateProjectSchema.parse(req.body);
+    const projectId = req.params.id as string;
+
+    const project = await prisma.project.findFirst({
+      where: { id: projectId, userId: req.user!.userId },
+    });
+
+    if (!project) {
+      res.status(404).json({ error: "Project not found" });
+      return;
+    }
+
+    let githubRepo = data.githubRepo;
+    if (githubRepo) {
+      if (githubRepo.includes("github.com")) {
+        const parsed = parseGitHubRepo(githubRepo);
+        if (parsed) {
+          githubRepo = parsed;
+        }
+      }
+    }
+
+    const updated = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        name: data.name ?? undefined,
+        path: data.path ?? undefined,
+        githubRepo: data.githubRepo !== undefined ? githubRepo : undefined,
+      },
+    });
+
+    res.json({ project: updated });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: error.errors[0].message });
+      return;
+    }
+    console.error("[PROJECTS] Update error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;
+

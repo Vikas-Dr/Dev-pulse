@@ -22,14 +22,52 @@ export function detectTechStack(projectPath: string): string {
   if (fs.existsSync(path.join(projectPath, "requirements.txt"))) return "python";
   if (fs.existsSync(path.join(projectPath, "Cargo.toml"))) return "rust";
   if (fs.existsSync(path.join(projectPath, "go.mod"))) return "go";
+
+  // Check subdirectories (one level deep)
+  try {
+    const files = fs.readdirSync(projectPath);
+    for (const file of files) {
+      const fullPath = path.join(projectPath, file);
+      if (fs.statSync(fullPath).isDirectory()) {
+        if (fs.existsSync(path.join(fullPath, "package.json"))) return "node";
+        if (fs.existsSync(path.join(fullPath, "requirements.txt"))) return "python";
+        if (fs.existsSync(path.join(fullPath, "Cargo.toml"))) return "rust";
+        if (fs.existsSync(path.join(fullPath, "go.mod"))) return "go";
+      }
+    }
+  } catch {}
+
   return "unknown";
+}
+
+export function getTechStackPath(projectPath: string): string {
+  if (fs.existsSync(path.join(projectPath, "package.json"))) return projectPath;
+  if (fs.existsSync(path.join(projectPath, "requirements.txt"))) return projectPath;
+  if (fs.existsSync(path.join(projectPath, "Cargo.toml"))) return projectPath;
+  if (fs.existsSync(path.join(projectPath, "go.mod"))) return projectPath;
+
+  try {
+    const files = fs.readdirSync(projectPath);
+    for (const file of files) {
+      const fullPath = path.join(projectPath, file);
+      if (fs.statSync(fullPath).isDirectory()) {
+        if (fs.existsSync(path.join(fullPath, "package.json"))) return fullPath;
+        if (fs.existsSync(path.join(fullPath, "requirements.txt"))) return fullPath;
+        if (fs.existsSync(path.join(fullPath, "Cargo.toml"))) return fullPath;
+        if (fs.existsSync(path.join(fullPath, "go.mod"))) return fullPath;
+      }
+    }
+  } catch {}
+
+  return projectPath;
 }
 
 export function scanProject(projectPath: string): ScanResult {
   const techStack = detectTechStack(projectPath);
+  const techPath = getTechStackPath(projectPath);
 
   if (techStack === "node") {
-    return scanNodeProject(projectPath);
+    return scanNodeProject(techPath);
   }
 
   // For other stacks, return placeholder
