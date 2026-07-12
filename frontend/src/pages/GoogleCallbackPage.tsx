@@ -22,7 +22,7 @@ export default function GoogleCallbackPage() {
     if (hasExecuted.current) return;
     hasExecuted.current = true;
 
-    const redirectUri = (import.meta as any).env.VITE_GOOGLE_REDIRECT_URI || "http://localhost:3000/auth/google/callback";
+    const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI || "http://localhost:3000/auth/google/callback";
 
     const exchangeCode = async () => {
       try {

@@ -14,8 +14,8 @@ export default function LoginPage() {
 
   const handleGoogleRedirect = () => {
     const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
-    const clientId = (import.meta as any).env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
-    const redirectUri = (import.meta as any).env.VITE_GOOGLE_REDIRECT_URI || "http://localhost:3000/auth/google/callback";
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+    const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI || "http://localhost:3000/auth/google/callback";
     
     const options = {
       redirect_uri: redirectUri,
