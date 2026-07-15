@@ -40,7 +40,7 @@ A self-hosted dashboard for indie developers and solo engineers who manage multi
 - **Pulse Indicator** — Animated ring on each project card showing health state at a glance (green=healthy, amber=warning, red=critical)
 - **Scan History** — Timeline of all scans with vulnerability counts
 - **Patch History** — Audit log of all patching activity
-- **Git Status** — Shows clean/dirty/no-repo status per project
+- **Git Status** — Shows clean/dirty/no-repo status per project scanned
 - **Health Score** — Computed score based on vulnerability severity counts
 
 ## Quick Start
