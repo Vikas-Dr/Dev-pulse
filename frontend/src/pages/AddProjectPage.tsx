@@ -7,6 +7,7 @@ type ProjectMode = null | "local" | "remote";
 
 export default function AddProjectPage() {
   const [mode, setMode] = useState<ProjectMode>(null);
+  const [showGuidelines, setShowGuidelines] = useState(false);
   const [name, setName] = useState("");
   const [path, setPath] = useState("");
   const [destinationPath, setDestinationPath] = useState("");
@@ -92,85 +93,132 @@ export default function AddProjectPage() {
 
       {/* Mode selector — shown when no mode chosen */}
       {mode === null && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6" style={{ perspective: "1000px" }}>
-          {/* Local Device Card */}
-          <button
-            type="button"
-            onClick={() => setMode("local")}
-            className="card-3d-enter group relative overflow-hidden text-left rounded-2xl border border-surface-border bg-surface-card
-              p-6 transition-all duration-300 ease-out
-              hover:border-pulse-green/40 hover:-translate-y-1
-              hover:shadow-[0_16px_40px_-12px_rgba(74,222,128,0.18),0_0_0_1px_rgba(74,222,128,0.08)]
-              active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-pulse-green/50 outline-none
-              cursor-pointer"
-            style={{ transformStyle: "preserve-3d" }}
-          >
-            {/* 3D depth layer */}
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-pulse-green/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pulse-green/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2" style={{ perspective: "1000px" }}>
+            {/* Local Device Card */}
+            <button
+              type="button"
+              onClick={() => setMode("local")}
+              className="card-3d-enter group relative overflow-hidden text-left rounded-2xl border border-surface-border bg-surface-card
+                p-6 transition-all duration-300 ease-out
+                hover:border-pulse-green/40 hover:-translate-y-1
+                hover:shadow-[0_16px_40px_-12px_rgba(74,222,128,0.18),0_0_0_1px_rgba(74,222,128,0.08)]
+                active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-pulse-green/50 outline-none
+                cursor-pointer"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              {/* 3D depth layer */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-pulse-green/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pulse-green/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-            {/* Icon */}
-            <div className="w-12 h-12 rounded-xl bg-pulse-green/8 border border-pulse-green/15 flex items-center justify-center mb-4
-              group-hover:shadow-[0_0_24px_rgba(74,222,128,0.2)] group-hover:bg-pulse-green/12
-              transition-all duration-300">
-              <svg className="w-6 h-6 text-pulse-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3" />
+              {/* Icon */}
+              <div className="w-12 h-12 rounded-xl bg-pulse-green/8 border border-pulse-green/15 flex items-center justify-center mb-4
+                group-hover:shadow-[0_0_24px_rgba(74,222,128,0.2)] group-hover:bg-pulse-green/12
+                transition-all duration-300">
+                <svg className="w-6 h-6 text-pulse-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3" />
+                </svg>
+              </div>
+
+              <h2 className="font-mono font-bold text-base text-text-primary mb-1.5 group-hover:text-pulse-green transition-colors duration-200">
+                Local Device
+              </h2>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Point to a folder already on your machine. DevPulse will scan it directly.
+              </p>
+
+              <div className="mt-4 flex items-center gap-1.5 text-xs text-pulse-green/60 font-mono group-hover:text-pulse-green transition-colors duration-200">
+                <span>Select folder</span>
+                <svg className="w-3.5 h-3.5 translate-x-0 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </div>
+            </button>
+
+            {/* Remote / GitHub Card */}
+            <button
+              type="button"
+              onClick={() => setMode("remote")}
+              className="card-3d-enter group relative overflow-hidden text-left rounded-2xl border border-surface-border bg-surface-card
+                p-6 transition-all duration-300 ease-out
+                hover:border-pulse-green/40 hover:-translate-y-1
+                hover:shadow-[0_16px_40px_-12px_rgba(74,222,128,0.18),0_0_0_1px_rgba(74,222,128,0.08)]
+                active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-pulse-green/50 outline-none
+                cursor-pointer"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-pulse-green/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pulse-green/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+              {/* Icon */}
+              <div className="w-12 h-12 rounded-xl bg-pulse-green/8 border border-pulse-green/15 flex items-center justify-center mb-4
+                group-hover:shadow-[0_0_24px_rgba(74,222,128,0.2)] group-hover:bg-pulse-green/12
+                transition-all duration-300">
+                <svg className="w-6 h-6 text-pulse-green" fill="currentColor" viewBox="0 0 24 24">
+                  <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                </svg>
+              </div>
+
+              <h2 className="font-mono font-bold text-base text-text-primary mb-1.5 group-hover:text-pulse-green transition-colors duration-200">
+                GitHub / Remote
+              </h2>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Paste a GitHub clone URL. DevPulse will clone it and monitor automatically.
+              </p>
+
+              <div className="mt-4 flex items-center gap-1.5 text-xs text-pulse-green/60 font-mono group-hover:text-pulse-green transition-colors duration-200">
+                <span>Clone repo</span>
+                <svg className="w-3.5 h-3.5 translate-x-0 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </div>
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <button
+              type="button"
+              onClick={() => setShowGuidelines(!showGuidelines)}
+              className="text-xs text-pulse-green hover:underline flex items-center gap-1.5 font-mono cursor-pointer transition-all duration-150 py-2.5"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
               </svg>
-            </div>
+              {showGuidelines ? "Hide custom GitHub guidelines" : "Do you want to clone it to local machine or localhost or want to download to local?"}
+            </button>
 
-            <h2 className="font-mono font-bold text-base text-text-primary mb-1.5 group-hover:text-pulse-green transition-colors duration-200">
-              Local Device
-            </h2>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Point to a folder already on your machine. DevPulse will scan it directly.
-            </p>
-
-            <div className="mt-4 flex items-center gap-1.5 text-xs text-pulse-green/60 font-mono group-hover:text-pulse-green transition-colors duration-200">
-              <span>Select folder</span>
-              <svg className="w-3.5 h-3.5 translate-x-0 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </div>
-          </button>
-
-          {/* Remote / GitHub Card */}
-          <button
-            type="button"
-            onClick={() => setMode("remote")}
-            className="card-3d-enter group relative overflow-hidden text-left rounded-2xl border border-surface-border bg-surface-card
-              p-6 transition-all duration-300 ease-out
-              hover:border-pulse-green/40 hover:-translate-y-1
-              hover:shadow-[0_16px_40px_-12px_rgba(74,222,128,0.18),0_0_0_1px_rgba(74,222,128,0.08)]
-              active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-pulse-green/50 outline-none
-              cursor-pointer"
-            style={{ transformStyle: "preserve-3d" }}
-          >
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-pulse-green/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pulse-green/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-            {/* Icon */}
-            <div className="w-12 h-12 rounded-xl bg-pulse-green/8 border border-pulse-green/15 flex items-center justify-center mb-4
-              group-hover:shadow-[0_0_24px_rgba(74,222,128,0.2)] group-hover:bg-pulse-green/12
-              transition-all duration-300">
-              <svg className="w-6 h-6 text-pulse-green" fill="currentColor" viewBox="0 0 24 24">
-                <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
-              </svg>
-            </div>
-
-            <h2 className="font-mono font-bold text-base text-text-primary mb-1.5 group-hover:text-pulse-green transition-colors duration-200">
-              GitHub / Remote
-            </h2>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Paste a GitHub clone URL. DevPulse will clone it and monitor automatically.
-            </p>
-
-            <div className="mt-4 flex items-center gap-1.5 text-xs text-pulse-green/60 font-mono group-hover:text-pulse-green transition-colors duration-200">
-              <span>Clone repo</span>
-              <svg className="w-3.5 h-3.5 translate-x-0 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </div>
-          </button>
+            {showGuidelines && (
+              <div className="w-full mt-4 p-5 rounded-2xl border border-pulse-green/20 bg-pulse-green/5 text-xs text-text-secondary space-y-3 font-mono modal-enter">
+                <h4 className="font-semibold text-text-primary flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-pulse-green animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  Custom GitHub Guidelines
+                </h4>
+                <div className="space-y-2 leading-relaxed">
+                  <p>
+                    Follow these guidelines to set up your GitHub repository locally:
+                  </p>
+                  <ul className="list-disc pl-4 space-y-2">
+                    <li>
+                      <strong>Clone via HTTPS:</strong> Open your terminal and run:<br />
+                      <code className="block bg-surface-card p-2 rounded text-pulse-green border border-surface-border/50 mt-1 my-1 select-all">git clone https://github.com/username/repo.git</code>
+                    </li>
+                    <li>
+                      <strong>Clone via SSH:</strong> If you have SSH keys set up, run:<br />
+                      <code className="block bg-surface-card p-2 rounded text-pulse-green border border-surface-border/50 mt-1 my-1 select-all">git clone git@github.com:username/repo.git</code>
+                    </li>
+                    <li>
+                      <strong>Download ZIP:</strong> Visit the repository on GitHub, click <strong>Code</strong>, and select <strong>Download ZIP</strong>. Extract the files on your local machine.
+                    </li>
+                    <li>
+                      <strong>Importing to DevPulse:</strong> Once downloaded or cloned, click <strong>Local Device</strong> above and select/paste the path to the project directory.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
