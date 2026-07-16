@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuthStore } from "./stores/authStore";
@@ -33,20 +33,12 @@ function RootRoute() {
       </Layout>
     </ProtectedRoute>
   ) : (
-    <Navigate to="/login" replace />
+    <LandingPage />
   );
 }
 
 function AppContent() {
   const initialize = useAuthStore((s) => s.initialize);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    if (code) {
-      window.location.href = `${window.location.origin}${window.location.pathname}#/auth/google/callback?${params.toString()}`;
-    }
-  }, []);
 
   useEffect(() => {
     initialize();
@@ -106,10 +98,10 @@ function AppContent() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <HashRouter>
+      <BrowserRouter>
         <AppContent />
         <ToastContainer />
-      </HashRouter>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
