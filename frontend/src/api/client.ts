@@ -82,7 +82,7 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         localStorage.removeItem("devpulse-auth");
-        window.location.href = "/login";
+        window.location.hash = "/login";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
