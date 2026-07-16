@@ -13,7 +13,8 @@ const app = express();
 const prisma = new PrismaClient();
 
 // Middleware
-app.use(cors({ origin: true, credentials: true }));
+const allowedOrigin = process.env.FRONTEND_URL || true;
+app.use(cors({ origin: allowedOrigin, credentials: true }));
 app.use(express.json());
 
 // Routes

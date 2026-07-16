@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { execSync, execFileSync } from "child_process";
 
 export interface PatchResult {
   packageName: string;
@@ -28,7 +28,7 @@ export function patchPackage(projectPath: string, packageName: string): PatchRes
       // ignore
     }
 
-    const output = execSync(`npm install ${packageName}@latest`, {
+    const output = execFileSync("npm", ["install", `${packageName}@latest`], {
       cwd: projectPath,
       timeout: 60000,
       encoding: "utf-8",

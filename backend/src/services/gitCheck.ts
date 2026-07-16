@@ -1,4 +1,4 @@
-import { execSync, exec } from "child_process";
+import { execSync, exec, execFile } from "child_process";
 import fs from "fs";
 import path from "path";
 
@@ -79,8 +79,7 @@ export function cloneGitRepo(gitUrl: string, targetPath: string): Promise<void> 
       fs.mkdirSync(parentDir, { recursive: true });
     }
 
-    const command = `git clone --depth 1 "${gitUrl}" "${targetPath}"`;
-    exec(command, { timeout: 60000 }, (error) => {
+    execFile("git", ["clone", "--depth", "1", gitUrl, targetPath], { timeout: 60000 }, (error) => {
       if (error) {
         console.error(`[GIT CLONE] Failed to clone ${gitUrl}:`, error.message);
         reject(error);
