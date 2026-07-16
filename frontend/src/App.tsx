@@ -33,7 +33,7 @@ function RootRoute() {
       </Layout>
     </ProtectedRoute>
   ) : (
-    <LandingPage />
+    <Navigate to="/login" replace />
   );
 }
 
