@@ -92,6 +92,9 @@ export default function LoginPage() {
                 autoFocus
                 autoComplete="email"
               />
+              <p className="text-[10px] text-text-secondary mt-1 font-mono">
+                Enter your registered account email (e.g. <code className="text-pulse-green">demo@devpulse.local</code>).
+              </p>
             </div>
 
             <div>
@@ -108,6 +111,9 @@ export default function LoginPage() {
                 required
                 autoComplete="current-password"
               />
+              <p className="text-[10px] text-text-secondary mt-1 font-mono">
+                Enter your secure password (e.g. <code className="text-pulse-green">Demo@123</code>).
+              </p>
             </div>
 
             {error && (

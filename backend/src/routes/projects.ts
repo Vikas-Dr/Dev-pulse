@@ -15,6 +15,7 @@ const createProjectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
   path: z.string().min(1, "Project path is required"),
   destinationPath: z.string().optional(),
+  cloneRepo: z.boolean().optional(),
 });
 
 const updateProjectSchema = z.object({
@@ -42,17 +43,23 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response): Promise<
         res.status(400).json({ error: "Invalid GitHub repository URL" });
         return;
       }
-      const folderName = githubRepo.replace("/", "-");
-      scanPath = data.destinationPath || path.resolve(__dirname, "../../clones", folderName);
+      
+      if (data.cloneRepo !== false) {
+        const folderName = githubRepo.replace("/", "-");
+        scanPath = data.destinationPath || path.resolve(__dirname, "../../clones", folderName);
 
-      if (!fs.existsSync(scanPath)) {
-        console.log(`[PROJECTS] Cloning ${data.path} into ${scanPath}...`);
-        try {
-          await cloneGitRepo(data.path, scanPath);
-        } catch (cloneErr: any) {
-          res.status(500).json({ error: `Failed to clone repository: ${cloneErr.message}` });
-          return;
+        if (!fs.existsSync(scanPath)) {
+          console.log(`[PROJECTS] Cloning ${data.path} into ${scanPath}...`);
+          try {
+            await cloneGitRepo(data.path, scanPath);
+          } catch (cloneErr: any) {
+            res.status(500).json({ error: `Failed to clone repository: ${cloneErr.message}` });
+            return;
+          }
         }
+      } else {
+        // Bypass cloning and use the path as the Git URL
+        scanPath = data.path;
       }
     } else {
       githubRepo = getGitHubRepoOfProject(data.path);

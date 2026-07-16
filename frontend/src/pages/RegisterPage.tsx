@@ -95,6 +95,9 @@ export default function RegisterPage() {
                 required
                 autoFocus
               />
+              <p className="text-[10px] text-text-secondary mt-1 font-mono">
+                Your full name or display name for the dashboard profile.
+              </p>
             </div>
 
             <div>
@@ -110,6 +113,9 @@ export default function RegisterPage() {
                 placeholder="you@example.com"
                 required
               />
+              <p className="text-[10px] text-text-secondary mt-1 font-mono">
+                Used to log in. Must be a valid email format (e.g. name@domain.com).
+              </p>
             </div>
 
             <div>
@@ -126,6 +132,9 @@ export default function RegisterPage() {
                 required
                 minLength={6}
               />
+              <p className="text-[10px] text-text-secondary mt-1 font-mono">
+                Choose a password that is at least 6 characters long.
+              </p>
             </div>
 
             {error && (

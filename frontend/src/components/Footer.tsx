@@ -5,8 +5,8 @@ export default function Footer() {
         <p className="font-mono text-[10px] sm:text-xs text-text-secondary/60">
           DevPulse <span className="hidden sm:inline">— Self-hosted project health dashboard</span>
         </p>
-        <p className="font-mono text-[10px] sm:text-xs text-text-secondary/40">
-          &copy; {new Date().getFullYear()}
+        <p className="font-mono text-[10px] sm:text-xs text-text-secondary/60 flex items-center gap-1">
+          Made with <span className="text-pulse-red">❤️</span> by Vikas
         </p>
       </div>
     </footer>

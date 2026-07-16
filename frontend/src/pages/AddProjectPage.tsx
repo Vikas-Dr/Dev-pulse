@@ -8,6 +8,7 @@ type ProjectMode = null | "local" | "remote";
 export default function AddProjectPage() {
   const [mode, setMode] = useState<ProjectMode>(null);
   const [showGuidelines, setShowGuidelines] = useState(false);
+  const [cloneRepo, setCloneRepo] = useState(true);
   const [name, setName] = useState("");
   const [path, setPath] = useState("");
   const [destinationPath, setDestinationPath] = useState("");
@@ -46,8 +47,9 @@ export default function AddProjectPage() {
       await addMutation.mutateAsync({
         name,
         path,
-        destinationPath: mode === "remote" ? destinationPath : undefined,
-      });
+        destinationPath: (mode === "remote" && cloneRepo) ? destinationPath : undefined,
+        cloneRepo: mode === "remote" ? cloneRepo : undefined,
+      } as any);
       navigate("/");
     } catch (err: unknown) {
       const message =
@@ -280,7 +282,10 @@ export default function AddProjectPage() {
             {/* Project Name */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="name" className="label mb-0">Project Name</label>
+                <label htmlFor="name" className="label mb-0 flex items-center gap-1">
+                  Project Name
+                  <span className="text-text-secondary/50 font-normal text-[10px]">(friendly identifier)</span>
+                </label>
                 {mode === "local" && (
                   <button
                     type="button"
@@ -301,6 +306,9 @@ export default function AddProjectPage() {
                 required
                 autoFocus
               />
+              <p className="text-[10px] text-text-secondary mt-1 font-mono">
+                Give your project a friendly name to identify it easily on the main dashboard.
+              </p>
             </div>
 
             {/* Local path */}
@@ -313,11 +321,11 @@ export default function AddProjectPage() {
                   value={path}
                   onChange={(e) => handlePathChange(e.target.value)}
                   className={`input-field font-mono text-xs ${error && !path ? "input-error" : ""}`}
-                  placeholder="e.g., /Users/viki/projects/my-app"
+                  placeholder="e.g., /Users/username/projects/my-app"
                   required
                 />
-                <p className="text-[10px] text-text-secondary mt-1.5 leading-relaxed">
-                  The full absolute path to your project folder on this device.
+                <p className="text-[10px] text-text-secondary mt-1.5 leading-relaxed font-mono">
+                  The full absolute path to the directory on this machine (e.g., <code className="text-pulse-green">/Users/viki/DevPulse</code>).
                 </p>
               </div>
             )}
@@ -326,7 +334,7 @@ export default function AddProjectPage() {
             {mode === "remote" && (
               <>
                 <div>
-                  <label htmlFor="path" className="label">GitHub Clone URL</label>
+                  <label htmlFor="path" className="label">GitHub Repository URL</label>
                   <input
                     id="path"
                     type="text"
@@ -336,29 +344,50 @@ export default function AddProjectPage() {
                     placeholder="https://github.com/username/repo.git"
                     required
                   />
-                  <p className="text-[10px] text-text-secondary mt-1.5 leading-relaxed">
-                    The repository will be cloned automatically by the backend.
+                  <p className="text-[10px] text-text-secondary mt-1.5 leading-relaxed font-mono">
+                    Enter the git URL to clone or link (e.g. <code className="text-pulse-green">https://github.com/username/project.git</code>).
                   </p>
                 </div>
 
-                <div>
-                  <label htmlFor="destinationPath" className="label">
-                    Clone Destination on Server
-                    <span className="text-pulse-green/60 ml-1 font-normal">(auto-filled)</span>
-                  </label>
+                <div className="flex items-center gap-2 py-1 select-none">
                   <input
-                    id="destinationPath"
-                    type="text"
-                    value={destinationPath}
-                    onChange={(e) => setDestinationPath(e.target.value)}
-                    className="input-field font-mono text-xs border-pulse-green/30 focus:border-pulse-green/60"
-                    placeholder="e.g., /Users/projects/my-repo"
-                    required
+                    id="cloneRepo"
+                    type="checkbox"
+                    checked={cloneRepo}
+                    onChange={(e) => setCloneRepo(e.target.checked)}
+                    className="w-4 h-4 rounded border-surface-border text-pulse-green focus:ring-pulse-green/50 cursor-pointer"
                   />
-                  <p className="text-[10px] text-pulse-green/60 mt-1.5 leading-relaxed">
-                    Where the repo will be cloned on the server running the backend.
-                  </p>
+                  <label htmlFor="cloneRepo" className="text-xs text-text-primary font-mono cursor-pointer font-semibold">
+                    Clone repository to local computer/server for vulnerability scanning
+                  </label>
                 </div>
+
+                {cloneRepo ? (
+                  <div className="pl-6 border-l-2 border-pulse-green/20 space-y-2 py-1 modal-enter">
+                    <label htmlFor="destinationPath" className="label">
+                      Clone Destination on Server
+                      <span className="text-pulse-green/60 ml-1 font-normal">(auto-filled)</span>
+                    </label>
+                    <input
+                      id="destinationPath"
+                      type="text"
+                      value={destinationPath}
+                      onChange={(e) => setDestinationPath(e.target.value)}
+                      className="input-field font-mono text-xs border-pulse-green/30 focus:border-pulse-green/60"
+                      placeholder="e.g., /Users/projects/my-repo"
+                      required
+                    />
+                    <p className="text-[10px] text-pulse-green/60 mt-1 leading-relaxed font-mono">
+                      Where the remote code repository will be saved on your machine.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="pl-6 border-l-2 border-surface-border/30 py-1 modal-enter">
+                    <p className="text-[10px] text-text-secondary leading-relaxed font-mono">
+                      💡 <strong>Linking only:</strong> Repository will not be cloned. Tech stack detection and vulnerability scanning will be disabled.
+                    </p>
+                  </div>
+                )}
               </>
             )}
 
