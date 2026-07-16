@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAddProject } from "../hooks/useProjects";
 import { IconChevronLeft, IconAdd, IconProjects } from "../components/icons";
 
+type ProjectMode = null | "local" | "remote";
+
 export default function AddProjectPage() {
+  const [mode, setMode] = useState<ProjectMode>(null);
   const [name, setName] = useState("");
   const [path, setPath] = useState("");
-  const [isGitUrl, setIsGitUrl] = useState(false);
   const [destinationPath, setDestinationPath] = useState("");
   const [error, setError] = useState("");
   const [shakeKey, setShakeKey] = useState(0);
@@ -16,16 +18,11 @@ export default function AddProjectPage() {
 
   const handlePathChange = (val: string) => {
     setPath(val);
-    const isGit = val.includes("github.com") || val.startsWith("git@") || val.startsWith("http://") || val.startsWith("https://");
-    setIsGitUrl(isGit);
-    
-    if (isGit) {
+    if (mode === "remote") {
       const cleanUrl = val.replace(/\.git$/, "");
       const parts = cleanUrl.split("/");
       const repoName = parts[parts.length - 1] || "cloned-repo";
-      setDestinationPath(`/Users/viki/projects/${repoName}`);
-    } else {
-      setDestinationPath("");
+      setDestinationPath(`/Users/${repoName}`);
     }
   };
 
@@ -39,16 +36,16 @@ export default function AddProjectPage() {
       return;
     }
     if (!path.trim()) {
-      setError("Project source path or Git URL is required.");
+      setError(mode === "remote" ? "GitHub URL is required." : "Folder path is required.");
       setShakeKey((k) => k + 1);
       return;
     }
 
     try {
-      await addMutation.mutateAsync({ 
-        name, 
-        path, 
-        destinationPath: isGitUrl ? destinationPath : undefined 
+      await addMutation.mutateAsync({
+        name,
+        path,
+        destinationPath: mode === "remote" ? destinationPath : undefined,
       });
       navigate("/");
     } catch (err: unknown) {
@@ -64,154 +61,289 @@ export default function AddProjectPage() {
   const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      // Get first file's webkitRelativePath (e.g., "my-folder/package.json")
       const relativePath = files[0].webkitRelativePath;
       const folderName = relativePath.split("/")[0];
-      
-      // Auto-populate Project Name
       setName(folderName);
-      
-      // Note: Browsers do not expose absolute local path due to security restrictions.
-      // We fill with folderName as a starting reference, but advise them to type the full path or check.
-      // Wait, we can suggest a default absolute path prefix like `/Users/viki/DevPulse` or similar!
       setPath(`/Users/viki/${folderName}`);
     }
   };
 
-  const triggerFolderPicker = () => {
-    if (folderInputRef.current) {
-      folderInputRef.current.click();
-    }
-  };
-
   return (
-    <div className="max-w-lg mx-auto page-enter">
+    <div className="max-w-xl mx-auto page-enter">
+      {/* Back button */}
       <div className="mb-6">
-        <Link
-          to="/"
-          className="btn-ghost inline-flex items-center gap-1.5"
-        >
+        <Link to="/" className="btn-ghost inline-flex items-center gap-1.5">
           <IconChevronLeft size={16} /> Back to Dashboard
         </Link>
       </div>
 
-      <div
-        key={shakeKey}
-        className={`card p-6 ${error ? "shake" : ""}`}
-      >
-        <div className="flex items-center gap-3 mb-1">
-          <IconAdd size={22} className="text-pulse-green" />
-          <h1 className="font-mono font-bold text-xl sm:text-2xl text-text-primary">
-            Add Project
-          </h1>
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-pulse-green/10 border border-pulse-green/20 flex items-center justify-center shadow-[0_0_20px_rgba(74,222,128,0.12)]">
+            <IconAdd size={20} className="text-pulse-green" />
+          </div>
+          <h1 className="font-mono font-bold text-2xl text-text-primary">Add Project</h1>
         </div>
-        <p className="text-sm text-text-secondary mb-6">
-          Add a local folder path to monitor directly, or paste a Git clone URL to clone it.
+        <p className="text-sm text-text-secondary ml-[52px]">
+          Choose how you want to add your project below.
         </p>
-
-        {/* Hidden Directory Selection Input */}
-        <input
-          type="file"
-          ref={folderInputRef}
-          onChange={handleFolderSelect}
-          className="hidden"
-          // @ts-ignore - directory attributes are non-standard but widely supported
-          webkitdirectory="true"
-          directory="true"
-          multiple
-        />
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label htmlFor="name" className="label mb-0">
-                Project Name
-              </label>
-              <button
-                type="button"
-                onClick={triggerFolderPicker}
-                className="text-xs text-pulse-green hover:underline flex items-center gap-1"
-              >
-                <IconProjects size={12} /> Detect Name from Local Folder
-              </button>
-            </div>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={`input-field ${error ? "input-error" : ""}`}
-              placeholder="e.g., my-awesome-app"
-              required
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label htmlFor="path" className="label">
-              Project Source Path or Git URL
-            </label>
-            <input
-              id="path"
-              type="text"
-              value={path}
-              onChange={(e) => handlePathChange(e.target.value)}
-              className={`input-field font-mono text-xs ${error ? "input-error" : ""}`}
-              placeholder="e.g., /Users/viki/projects/app OR https://github.com/Vikas-Dr/Dev-pulse.git or custom GitHub guidelines"
-              required
-            />
-            <p className="text-[10px] text-text-secondary mt-1.5 leading-relaxed">
-              Paste either the **absolute filesystem path** of a local project directory OR a **GitHub Clone URL / Git report URL** (e.g. <code>custom GitHub guidelines</code> repository link). Remote Git repositories will be cloned automatically by the backend.
-            </p>
-          </div>
-
-          {isGitUrl && (
-            <div className="space-y-1.5 page-enter">
-              <label htmlFor="destinationPath" className="label text-pulse-green font-semibold">
-                Clone Destination Path on Local Computer
-              </label>
-              <input
-                id="destinationPath"
-                type="text"
-                value={destinationPath}
-                onChange={(e) => setDestinationPath(e.target.value)}
-                className="input-field font-mono text-xs border-pulse-green/40 focus:border-pulse-green focus:ring-2 focus:ring-pulse-green/20"
-                placeholder="e.g., /Users/viki/projects/my-app"
-                required
-              />
-              <p className="text-[10px] text-pulse-green/80 leading-normal">
-                The repository will be cloned directly into this folder on your computer.
-              </p>
-            </div>
-          )}
-
-          {error && (
-            <p className="text-pulse-red text-sm font-medium flex items-center gap-2">
-              <span>!</span>
-              <span>{error}</span>
-            </p>
-          )}
-
-          <div className="flex items-center gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={addMutation.isPending}
-              className="btn-primary flex items-center gap-2"
-            >
-              {addMutation.isPending && (
-                <span className="w-4 h-4 rounded-full border-2 border-pulse-green/30 border-t-pulse-green animate-spin" />
-              )}
-              {addMutation.isPending ? "Adding..." : "Add Project"}
-            </button>
-            <Link
-              to="/"
-              className="text-sm text-text-secondary hover:text-text-primary transition-colors"
-            >
-              Cancel
-            </Link>
-          </div>
-        </form>
       </div>
+
+      {/* Mode selector — shown when no mode chosen */}
+      {mode === null && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6" style={{ perspective: "1000px" }}>
+          {/* Local Device Card */}
+          <button
+            type="button"
+            onClick={() => setMode("local")}
+            className="card-3d-enter group relative overflow-hidden text-left rounded-2xl border border-surface-border bg-surface-card
+              p-6 transition-all duration-300 ease-out
+              hover:border-pulse-green/40 hover:-translate-y-1
+              hover:shadow-[0_16px_40px_-12px_rgba(74,222,128,0.18),0_0_0_1px_rgba(74,222,128,0.08)]
+              active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-pulse-green/50 outline-none
+              cursor-pointer"
+            style={{ transformStyle: "preserve-3d" }}
+          >
+            {/* 3D depth layer */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-pulse-green/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pulse-green/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+            {/* Icon */}
+            <div className="w-12 h-12 rounded-xl bg-pulse-green/8 border border-pulse-green/15 flex items-center justify-center mb-4
+              group-hover:shadow-[0_0_24px_rgba(74,222,128,0.2)] group-hover:bg-pulse-green/12
+              transition-all duration-300">
+              <svg className="w-6 h-6 text-pulse-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3" />
+              </svg>
+            </div>
+
+            <h2 className="font-mono font-bold text-base text-text-primary mb-1.5 group-hover:text-pulse-green transition-colors duration-200">
+              Local Device
+            </h2>
+            <p className="text-xs text-text-secondary leading-relaxed">
+              Point to a folder already on your machine. DevPulse will scan it directly.
+            </p>
+
+            <div className="mt-4 flex items-center gap-1.5 text-xs text-pulse-green/60 font-mono group-hover:text-pulse-green transition-colors duration-200">
+              <span>Select folder</span>
+              <svg className="w-3.5 h-3.5 translate-x-0 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </div>
+          </button>
+
+          {/* Remote / GitHub Card */}
+          <button
+            type="button"
+            onClick={() => setMode("remote")}
+            className="card-3d-enter group relative overflow-hidden text-left rounded-2xl border border-surface-border bg-surface-card
+              p-6 transition-all duration-300 ease-out
+              hover:border-pulse-green/40 hover:-translate-y-1
+              hover:shadow-[0_16px_40px_-12px_rgba(74,222,128,0.18),0_0_0_1px_rgba(74,222,128,0.08)]
+              active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-pulse-green/50 outline-none
+              cursor-pointer"
+            style={{ transformStyle: "preserve-3d" }}
+          >
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-pulse-green/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pulse-green/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+            {/* Icon */}
+            <div className="w-12 h-12 rounded-xl bg-pulse-green/8 border border-pulse-green/15 flex items-center justify-center mb-4
+              group-hover:shadow-[0_0_24px_rgba(74,222,128,0.2)] group-hover:bg-pulse-green/12
+              transition-all duration-300">
+              <svg className="w-6 h-6 text-pulse-green" fill="currentColor" viewBox="0 0 24 24">
+                <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+              </svg>
+            </div>
+
+            <h2 className="font-mono font-bold text-base text-text-primary mb-1.5 group-hover:text-pulse-green transition-colors duration-200">
+              GitHub / Remote
+            </h2>
+            <p className="text-xs text-text-secondary leading-relaxed">
+              Paste a GitHub clone URL. DevPulse will clone it and monitor automatically.
+            </p>
+
+            <div className="mt-4 flex items-center gap-1.5 text-xs text-pulse-green/60 font-mono group-hover:text-pulse-green transition-colors duration-200">
+              <span>Clone repo</span>
+              <svg className="w-3.5 h-3.5 translate-x-0 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* Form — shown after mode is selected */}
+      {mode !== null && (
+        <div
+          key={shakeKey}
+          className={`relative overflow-hidden rounded-2xl border border-surface-border bg-surface-card p-6
+            shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4),0_0_0_1px_rgba(74,222,128,0.04)]
+            ${error ? "shake" : "modal-enter"}`}
+        >
+          {/* Top glow line */}
+          <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-pulse-green/40 to-transparent" />
+
+          {/* Mode badge + back to selector */}
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold border
+                ${mode === "local"
+                  ? "bg-pulse-green/10 border-pulse-green/25 text-pulse-green"
+                  : "bg-blue-500/10 border-blue-500/25 text-blue-400"}`}>
+                {mode === "local" ? (
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3" />
+                  </svg>
+                ) : (
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                  </svg>
+                )}
+                {mode === "local" ? "Local Device" : "GitHub / Remote"}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setMode(null); setName(""); setPath(""); setDestinationPath(""); setError(""); }}
+              className="text-xs text-text-secondary hover:text-text-primary font-mono flex items-center gap-1 transition-colors"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+              Change
+            </button>
+          </div>
+
+          {/* Hidden folder input */}
+          <input
+            type="file"
+            ref={folderInputRef}
+            onChange={handleFolderSelect}
+            className="hidden"
+            // @ts-ignore
+            webkitdirectory="true"
+            directory="true"
+            multiple
+          />
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Project Name */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="name" className="label mb-0">Project Name</label>
+                {mode === "local" && (
+                  <button
+                    type="button"
+                    onClick={() => folderInputRef.current?.click()}
+                    className="text-xs text-pulse-green/70 hover:text-pulse-green flex items-center gap-1 transition-colors font-mono"
+                  >
+                    <IconProjects size={12} /> Auto-detect
+                  </button>
+                )}
+              </div>
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={`input-field ${error && !name ? "input-error" : ""}`}
+                placeholder={mode === "local" ? "e.g., my-awesome-app" : "e.g., Dev-pulse"}
+                required
+                autoFocus
+              />
+            </div>
+
+            {/* Local path */}
+            {mode === "local" && (
+              <div>
+                <label htmlFor="path" className="label">Absolute Folder Path</label>
+                <input
+                  id="path"
+                  type="text"
+                  value={path}
+                  onChange={(e) => handlePathChange(e.target.value)}
+                  className={`input-field font-mono text-xs ${error && !path ? "input-error" : ""}`}
+                  placeholder="e.g., /Users/viki/projects/my-app"
+                  required
+                />
+                <p className="text-[10px] text-text-secondary mt-1.5 leading-relaxed">
+                  The full absolute path to your project folder on this device.
+                </p>
+              </div>
+            )}
+
+            {/* Remote URL + destination */}
+            {mode === "remote" && (
+              <>
+                <div>
+                  <label htmlFor="path" className="label">GitHub Clone URL</label>
+                  <input
+                    id="path"
+                    type="text"
+                    value={path}
+                    onChange={(e) => handlePathChange(e.target.value)}
+                    className={`input-field font-mono text-xs ${error && !path ? "input-error" : ""}`}
+                    placeholder="https://github.com/username/repo.git"
+                    required
+                  />
+                  <p className="text-[10px] text-text-secondary mt-1.5 leading-relaxed">
+                    The repository will be cloned automatically by the backend.
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="destinationPath" className="label">
+                    Clone Destination on Server
+                    <span className="text-pulse-green/60 ml-1 font-normal">(auto-filled)</span>
+                  </label>
+                  <input
+                    id="destinationPath"
+                    type="text"
+                    value={destinationPath}
+                    onChange={(e) => setDestinationPath(e.target.value)}
+                    className="input-field font-mono text-xs border-pulse-green/30 focus:border-pulse-green/60"
+                    placeholder="e.g., /Users/projects/my-repo"
+                    required
+                  />
+                  <p className="text-[10px] text-pulse-green/60 mt-1.5 leading-relaxed">
+                    Where the repo will be cloned on the server running the backend.
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* Error */}
+            {error && (
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-pulse-red/8 border border-pulse-red/20">
+                <span className="text-pulse-red font-bold text-sm flex-shrink-0">!</span>
+                <p className="text-pulse-red text-sm font-medium">{error}</p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                type="submit"
+                disabled={addMutation.isPending}
+                className="btn-primary flex items-center gap-2 shadow-[0_4px_16px_-4px_rgba(74,222,128,0.25)] hover:shadow-[0_8px_24px_-6px_rgba(74,222,128,0.35)] transition-shadow"
+              >
+                {addMutation.isPending && (
+                  <span className="w-4 h-4 rounded-full border-2 border-pulse-green/30 border-t-pulse-green animate-spin" />
+                )}
+                {addMutation.isPending ? "Adding..." : "Add Project"}
+              </button>
+              <Link
+                to="/"
+                className="text-sm text-text-secondary hover:text-text-primary transition-colors"
+              >
+                Cancel
+              </Link>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
