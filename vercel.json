@@ -11,6 +11,14 @@
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "status": 404
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/frontend/dist/assets/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
