@@ -17,49 +17,39 @@ export interface ScanResult {
   techStack: string;
 }
 
-export function detectTechStack(projectPath: string): string {
-  if (fs.existsSync(path.join(projectPath, "package.json"))) return "node";
-  if (fs.existsSync(path.join(projectPath, "requirements.txt"))) return "python";
-  if (fs.existsSync(path.join(projectPath, "Cargo.toml"))) return "rust";
-  if (fs.existsSync(path.join(projectPath, "go.mod"))) return "go";
+function findTechStackRecursively(currentPath: string, maxDepth: number, currentDepth = 0): { stack: string, path: string } | null {
+  if (currentDepth > maxDepth) return null;
 
-  // Check subdirectories (one level deep)
+  if (fs.existsSync(path.join(currentPath, "package.json"))) return { stack: "node", path: currentPath };
+  if (fs.existsSync(path.join(currentPath, "requirements.txt"))) return { stack: "python", path: currentPath };
+  if (fs.existsSync(path.join(currentPath, "Cargo.toml"))) return { stack: "rust", path: currentPath };
+  if (fs.existsSync(path.join(currentPath, "go.mod"))) return { stack: "go", path: currentPath };
+
   try {
-    const files = fs.readdirSync(projectPath);
+    const files = fs.readdirSync(currentPath);
     for (const file of files) {
-      const fullPath = path.join(projectPath, file);
+      // Ignore common directories to speed up search and avoid false positives
+      if (file === "node_modules" || file === ".git" || file === "dist" || file === "build" || file === "venv") continue;
+      
+      const fullPath = path.join(currentPath, file);
       if (fs.statSync(fullPath).isDirectory()) {
-        if (fs.existsSync(path.join(fullPath, "package.json"))) return "node";
-        if (fs.existsSync(path.join(fullPath, "requirements.txt"))) return "python";
-        if (fs.existsSync(path.join(fullPath, "Cargo.toml"))) return "rust";
-        if (fs.existsSync(path.join(fullPath, "go.mod"))) return "go";
+        const result = findTechStackRecursively(fullPath, maxDepth, currentDepth + 1);
+        if (result) return result;
       }
     }
   } catch {}
 
-  return "unknown";
+  return null;
+}
+
+export function detectTechStack(projectPath: string): string {
+  const result = findTechStackRecursively(projectPath, 2);
+  return result ? result.stack : "unknown";
 }
 
 export function getTechStackPath(projectPath: string): string {
-  if (fs.existsSync(path.join(projectPath, "package.json"))) return projectPath;
-  if (fs.existsSync(path.join(projectPath, "requirements.txt"))) return projectPath;
-  if (fs.existsSync(path.join(projectPath, "Cargo.toml"))) return projectPath;
-  if (fs.existsSync(path.join(projectPath, "go.mod"))) return projectPath;
-
-  try {
-    const files = fs.readdirSync(projectPath);
-    for (const file of files) {
-      const fullPath = path.join(projectPath, file);
-      if (fs.statSync(fullPath).isDirectory()) {
-        if (fs.existsSync(path.join(fullPath, "package.json"))) return fullPath;
-        if (fs.existsSync(path.join(fullPath, "requirements.txt"))) return fullPath;
-        if (fs.existsSync(path.join(fullPath, "Cargo.toml"))) return fullPath;
-        if (fs.existsSync(path.join(fullPath, "go.mod"))) return fullPath;
-      }
-    }
-  } catch {}
-
-  return projectPath;
+  const result = findTechStackRecursively(projectPath, 2);
+  return result ? result.path : projectPath;
 }
 
 export function scanProject(projectPath: string): ScanResult {

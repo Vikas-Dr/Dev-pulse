@@ -256,7 +256,7 @@ router.post("/:id/scan", authenticate, async (req: AuthRequest, res: Response): 
     const highCount = scanResult.vulnerabilities.filter((v) => v.severity === "high").length;
     const healthScore = Math.max(0, 100 - criticalCount * 20 - highCount * 10);
 
-    await prisma.project.update({
+    const updatedProject = await prisma.project.update({
       where: { id: project.id },
       data: {
         lastScanned: new Date(),
@@ -266,9 +266,19 @@ router.post("/:id/scan", authenticate, async (req: AuthRequest, res: Response): 
         healthScore,
         githubRepo: githubRepo || project.githubRepo,
       },
+      include: {
+        scans: {
+          orderBy: { scannedAt: "desc" },
+          include: { vulnerabilities: true },
+        },
+        patches: {
+          orderBy: { patchedAt: "desc" },
+          take: 50,
+        },
+      },
     });
 
-    res.json({ scan });
+    res.json({ scan, project: updatedProject });
   } catch (error) {
     console.error("[PROJECTS] Scan error:", error);
     res.status(500).json({ error: "Internal server error" });

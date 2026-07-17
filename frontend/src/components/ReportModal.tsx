@@ -103,7 +103,7 @@ export default function ReportModal({
             </div>
             <div>
               <span className="text-[10px] text-text-secondary uppercase tracking-wider block font-semibold font-mono">Tech Stack</span>
-              <span className="text-sm font-medium text-text-primary uppercase font-mono">{project.techStack}</span>
+              <span className="text-sm font-medium text-text-primary uppercase font-mono">{project.techStack === "unknown" ? "Unknown Stack" : project.techStack}</span>
             </div>
             <div className="md:col-span-2">
               <span className="text-[10px] text-text-secondary uppercase tracking-wider block font-semibold font-mono">Local Repository Path</span>
@@ -117,7 +117,7 @@ export default function ReportModal({
             )}
             <div>
               <span className="text-[10px] text-text-secondary uppercase tracking-wider block font-semibold font-mono">Git Status</span>
-              <span className="text-sm font-medium text-text-primary capitalize font-mono">{project.gitStatus || "Unknown"}</span>
+              <span className="text-sm font-medium text-text-primary capitalize font-mono">{project.gitStatus === "no-repo" ? "No Repo" : (project.gitStatus || "Unknown")}</span>
             </div>
           </div>
 

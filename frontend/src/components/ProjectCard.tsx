@@ -47,11 +47,9 @@ export default function ProjectCard({ project, index = 0 }: ProjectCardProps) {
       </div>
 
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        {project.techStack !== "unknown" && (
-          <span className="text-[10px] uppercase tracking-wider font-mono text-text-secondary bg-surface-border/30 px-2 py-0.5 rounded">
-            {project.techStack}
-          </span>
-        )}
+        <span className="text-[10px] uppercase tracking-wider font-mono text-text-secondary bg-surface-border/30 px-2 py-0.5 rounded">
+          {project.techStack === "unknown" ? "Unknown Stack" : project.techStack}
+        </span>
         {project.gitStatus && (
           <span
             className={`text-[10px] font-mono px-2 py-0.5 rounded ${
@@ -62,7 +60,7 @@ export default function ProjectCard({ project, index = 0 }: ProjectCardProps) {
                   : "text-text-secondary bg-surface-border/30"
             }`}
           >
-            {project.gitStatus === "no-repo" ? "no git" : project.gitStatus}
+            {project.gitStatus === "no-repo" ? "No Repo" : project.gitStatus}
           </span>
         )}
         {project.healthScore !== null && (

@@ -191,7 +191,7 @@ export default function ProjectDetailPage() {
             Tech Stack
           </span>
           <span className="font-mono text-sm text-text-primary uppercase">
-            {project.techStack}
+            {project.techStack === "unknown" ? "Unknown Stack" : project.techStack}
           </span>
         </div>
         <div className="card px-4 py-3 flex-1 min-w-[120px]">
@@ -209,7 +209,7 @@ export default function ProjectDetailPage() {
             Git Status
           </span>
           <span className="font-mono text-sm text-text-primary capitalize">
-            {project.gitStatus || "—"}
+            {project.gitStatus === "no-repo" ? "No Repo" : (project.gitStatus || "—")}
           </span>
         </div>
         <div className="card px-4 py-3 flex-1 min-w-[120px]">

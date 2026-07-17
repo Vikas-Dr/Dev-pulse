@@ -58,8 +58,11 @@ export function useScanProject() {
       const response = await apiClient.post(`/projects/${projectId}/scan`);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data, projectId) => {
       toast.success("Scan completed");
+      if (data.project) {
+        queryClient.setQueryData(["project", projectId], { project: data.project });
+      }
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       queryClient.invalidateQueries({ queryKey: ["project"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
