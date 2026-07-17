@@ -11,7 +11,6 @@ import ProjectDetailPage from "./pages/ProjectDetailPage";
 import AddProjectPage from "./pages/AddProjectPage";
 import SettingsPage from "./pages/SettingsPage";
 import LandingPage from "./pages/LandingPage";
-import GoogleCallbackPage from "./pages/GoogleCallbackPage";
 import ToastContainer from "./components/Toast";
 
 const queryClient = new QueryClient({
@@ -55,7 +54,6 @@ function AppContent() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
       <Route
         path="/"
         element={<RootRoute />}
