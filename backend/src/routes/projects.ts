@@ -6,6 +6,7 @@ import path from "path";
 import { authenticate, AuthRequest } from "../middleware/auth";
 import { scanProject, detectTechStack } from "../services/scanner";
 import { patchPackage } from "../services/patcher";
+import os from "os";
 import { checkGitStatus, getGitHubRepoOfProject, parseGitHubRepo, cloneGitRepo } from "../services/gitCheck";
 
 const router = Router();
@@ -46,7 +47,7 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response): Promise<
       
       if (data.cloneRepo !== false) {
         const folderName = githubRepo.replace("/", "-");
-        scanPath = data.destinationPath || path.resolve(__dirname, "../../clones", folderName);
+        scanPath = data.destinationPath || path.join(os.tmpdir(), "devpulse-clones", folderName);
 
         if (!fs.existsSync(scanPath)) {
           console.log(`[PROJECTS] Cloning ${data.path} into ${scanPath}...`);
@@ -232,7 +233,7 @@ router.post("/:id/scan", authenticate, async (req: AuthRequest, res: Response): 
     let tempClonePath: string | null = null;
 
     if (isGitUrl) {
-      tempClonePath = path.resolve(__dirname, "../../clones", `temp-${project.id}-${Date.now()}`);
+      tempClonePath = path.join(os.tmpdir(), "devpulse-clones", `temp-${project.id}-${Date.now()}`);
       try {
         console.log(`[PROJECTS] Temporarily cloning ${project.path} into ${tempClonePath}...`);
         await cloneGitRepo(project.path, tempClonePath);
