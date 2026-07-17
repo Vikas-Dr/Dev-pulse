@@ -227,10 +227,36 @@ router.post("/:id/scan", authenticate, async (req: AuthRequest, res: Response): 
       return;
     }
 
+    const isGitUrl = project.path.includes("github.com") || project.path.startsWith("git@") || project.path.startsWith("http");
+    let targetPath = project.path;
+    let tempClonePath: string | null = null;
+
+    if (isGitUrl) {
+      tempClonePath = path.resolve(__dirname, "../../clones", `temp-${project.id}-${Date.now()}`);
+      try {
+        console.log(`[PROJECTS] Temporarily cloning ${project.path} into ${tempClonePath}...`);
+        await cloneGitRepo(project.path, tempClonePath);
+        targetPath = tempClonePath;
+      } catch (cloneErr: any) {
+        console.error("[PROJECTS] Failed to clone temporary repository:", cloneErr);
+        res.status(500).json({ error: `Failed to clone remote repository for scanning: ${cloneErr.message}` });
+        return;
+      }
+    }
+
     // Run scan
-    const scanResult = scanProject(project.path);
-    const gitInfo = checkGitStatus(project.path);
-    const githubRepo = getGitHubRepoOfProject(project.path);
+    const scanResult = scanProject(targetPath);
+    const gitInfo = checkGitStatus(targetPath);
+    const githubRepo = getGitHubRepoOfProject(targetPath) || project.githubRepo;
+
+    // Cleanup temp clone
+    if (tempClonePath) {
+      try {
+        fs.rmSync(tempClonePath, { recursive: true, force: true });
+      } catch (err) {
+        console.error(`[PROJECTS] Failed to cleanup temp clone ${tempClonePath}:`, err);
+      }
+    }
 
     // Create scan record
     const scan = await prisma.scan.create({
