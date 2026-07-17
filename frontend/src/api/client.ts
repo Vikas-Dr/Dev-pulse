@@ -64,7 +64,7 @@ apiClient.interceptors.response.use(
         if (!stored) throw new Error("No auth data");
 
         const { refreshToken } = JSON.parse(stored);
-        const response = await axios.post("/api/auth/refresh", { refreshToken });
+        const response = await apiClient.post("/auth/refresh", { refreshToken });
 
         const { accessToken: newAccess, refreshToken: newRefresh } = response.data;
 
