@@ -29,6 +29,25 @@ const googleCallbackSchema = z.object({
   redirectUri: z.string().min(1, "Redirect URI is required"),
 });
 
+// GET /api/auth/google/callback (Fallback for misconfigured Google OAuth Redirect URIs)
+router.get("/google/callback", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { code } = req.query;
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    
+    if (!code) {
+      res.redirect(`${frontendUrl}/login?error=NoCode`);
+      return;
+    }
+
+    // Redirect the browser back to the SPA callback route with the authorization code
+    res.redirect(`${frontendUrl}/auth/google/callback?code=${code}`);
+  } catch (error) {
+    console.error("[AUTH] GET Google callback error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // POST /api/auth/google/callback
 router.post("/google/callback", async (req: Request, res: Response): Promise<void> => {
   try {
