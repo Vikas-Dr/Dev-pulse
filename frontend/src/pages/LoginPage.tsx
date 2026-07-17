@@ -40,11 +40,16 @@ export default function LoginPage() {
     try {
       await login(email, password);
     } catch (err: unknown) {
-      const message =
-        err && typeof err === "object" && "response" in err
-          ? (err as { response: { data: { error: string } } }).response?.data?.error
-          : "Login failed. Please try again.";
-      setError(message || "Login failed. Please try again.");
+      let message = "Invalid email or password.";
+      if (err && typeof err === "object" && "response" in err) {
+        const errorData = (err as any).response?.data?.error;
+        if (typeof errorData === "string") {
+          message = errorData;
+        } else if (typeof errorData === "object" && errorData !== null) {
+          message = (errorData as any).message || JSON.stringify(errorData);
+        }
+      }
+      setError(message);
       setShakeKey((k) => k + 1);
     } finally {
       setLoading(false);

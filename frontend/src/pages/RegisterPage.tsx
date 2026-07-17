@@ -44,11 +44,16 @@ export default function RegisterPage() {
       await register(email, password, name);
       navigate("/");
     } catch (err: unknown) {
-      const message =
-        err && typeof err === "object" && "response" in err
-          ? (err as { response: { data: { error: string } } }).response?.data?.error
-          : "Registration failed. Please try again.";
-      setError(message || "Registration failed. Please try again.");
+      let message = "Registration failed. Please try again.";
+      if (err && typeof err === "object" && "response" in err) {
+        const errorData = (err as any).response?.data?.error;
+        if (typeof errorData === "string") {
+          message = errorData;
+        } else if (typeof errorData === "object") {
+          message = errorData.message || JSON.stringify(errorData);
+        }
+      }
+      setError(message);
       setShakeKey((k) => k + 1);
     } finally {
       setLoading(false);
